@@ -232,12 +232,11 @@ def find_vc_path(repository_ctx):
     # 5. Check default directories for VC installation
     auto_configure_warning_maybe(repository_ctx, "Looking for default Visual C++ installation directory")
     for path in [
-        "Microsoft Visual Studio 14.0\\VC",
-        "Microsoft Visual Studio\\2019\\Preview\\VC",
-    ] + [
         "Microsoft Visual Studio\\%s\\%s\\VC" % (year, edition)
-        for year in (2017, 2019, 2022)
-        for edition in ("BuildTools", "Community", "Professional", "Enterprise")
+        for year in (2022, 2019, 2017)
+        for edition in ("Preview", "BuildTools", "Community", "Professional", "Enterprise")
+    ] + [
+        "Microsoft Visual Studio 14.0\\VC",
     ]:
         path = program_files_dir + "\\" + path
         if repository_ctx.path(path).exists:
@@ -256,14 +255,12 @@ def _is_vs_2017_or_newer(repository_ctx, vc_path):
     # The layout of VC folder in VS 2017 and newer versions is different from that in VS 2015 and older versions.
     # From VS 2017 it contains three directories:
     # "Auxiliary", "Redist", "Tools"
-    # From VS 2022 17.6, a fourth "vcpkg" directory is also present
+    # From VS 2022 17.6, a fourth "vcpkg" directory is also present, but we only check presence of the three
+    # directories above in case other directories pop up in the future
 
     vc_2017_or_newer_contents = ["auxiliary", "redist", "tools"]
     vc_path_contents = [d.basename.lower() for d in repository_ctx.path(vc_path).readdir()]
-    vc_path_contents = sorted(vc_path_contents)
-    if vc_path_contents == vc_2017_or_newer_contents:
-        return True
-    vc_2017_or_newer_contents.append("vcpkg")
+    vc_path_contents = sorted([d for d in vc_path_contents if d in vc_2017_or_newer_contents])
     return vc_path_contents == vc_2017_or_newer_contents
 
 def _is_msbuildtools(vc_path):
