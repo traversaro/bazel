@@ -65,6 +65,7 @@ log "Building output/bazel"
 # host.
 bazel_build "src:bazel_nojdk${EXE_EXT}" \
   --action_env=PATH \
+  --cxxopt=-std=c++17 \
   --host_platform=@local_config_platform//:host \
   --platforms=@local_config_platform//:host \
   || fail "Could not build Bazel"
